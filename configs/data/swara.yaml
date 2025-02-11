@@ -1,5 +1,9 @@
+defaults:
+  - ljspeech
+  - _self_
+
 _target_: matcha.data.text_mel_datamodule.TextMelDataModule
-name: SWARA
+name: swara
 train_filelist_path: resources/filelists/SWARA_1_0/metadata_SWARA1.0_train.csv
 valid_filelist_path: resources/filelists/SWARA_1_0/metadata_SWARA1.0_val.csv
 batch_size: 16
@@ -18,5 +22,4 @@ f_max: 8000
 data_statistics:  # Computed for SWARA1 dataset
   mel_mean: -4.776196479797363
   mel_std: 2.2280216217041016
-seed: ${seed}
 load_durations: false

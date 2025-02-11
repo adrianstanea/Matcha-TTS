@@ -32,6 +32,9 @@ test: ## Run not slow tests
 test-full: ## Run all tests
 	pytest
 
+train-swara: ## Train the model
+	python matcha/train.py experiment=swara trainer.max_epochs=310
+
 train-ljspeech: ## Train the model
 	python matcha/train.py experiment=ljspeech
 
