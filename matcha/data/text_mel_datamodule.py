@@ -98,6 +98,7 @@ class TextMelDataModule(LightningDataModule):
             pin_memory=self.hparams.pin_memory,
             shuffle=True,
             collate_fn=TextMelBatchCollate(self.hparams.n_spks),
+            drop_last=True,  # Add this line to drop the last incomplete batch
         )
 
     def val_dataloader(self):
@@ -108,6 +109,7 @@ class TextMelDataModule(LightningDataModule):
             pin_memory=self.hparams.pin_memory,
             shuffle=False,
             collate_fn=TextMelBatchCollate(self.hparams.n_spks),
+            drop_last=True
         )
 
     def teardown(self, stage: Optional[str] = None):
