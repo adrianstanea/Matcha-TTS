@@ -25,7 +25,7 @@ critical_logger.setLevel(logging.CRITICAL)
 # now the phonemizer is not initialising at every call
 # Might be less flexible, but it is much-much faster
 global_phonemizer = phonemizer.backend.EspeakBackend(
-    language="en-us",
+    language="ro",
     preserve_punctuation=True,
     with_stress=True,
     language_switch="remove-flags",
@@ -109,6 +109,16 @@ def english_cleaners2(text):
     text = expand_abbreviations(text)
     phonemes = global_phonemizer.phonemize([text], strip=True, njobs=1)[0]
     # Added in some cases espeak is not removing brackets
+    phonemes = remove_brackets(phonemes)
+    phonemes = collapse_whitespace(phonemes)
+    return phonemes
+
+def romanian_cleaners(text):
+    """Pipeline for Romanian text, including abbreviation expansion. + punctuation + stress"""
+    text = convert_to_ascii(text)
+    text = lowercase(text)
+    text = expand_abbreviations(text)
+    phonemes = global_phonemizer.phonemize([text], strip=True, njobs=1)[0]
     phonemes = remove_brackets(phonemes)
     phonemes = collapse_whitespace(phonemes)
     return phonemes
