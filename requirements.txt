@@ -32,7 +32,7 @@ inflect
 Unidecode
 scipy
 torchaudio
-matplotlib
+matplotlib==3.7.0
 pandas
 conformer==0.3.2
 diffusers # developed using version ==0.25.0
