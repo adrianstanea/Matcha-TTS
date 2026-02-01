@@ -7,6 +7,7 @@ from pathlib import Path
 import IPython.display as ipd
 import numpy as np
 import pandas as pd
+from regex import F
 import soundfile as sf
 import torch
 from tqdm.auto import tqdm
@@ -31,7 +32,7 @@ SPEAKER = None
 SAVE_DIR = None
 
 model = None
-vocoder = None 
+vocoder = None
 denoiser = None
 
 def parse_args():
@@ -147,70 +148,90 @@ def parse_filelist(filelist_path, split_char="|"):
 
 
 def main(args):
-    MATCHA_CHECKPOINT = get_user_data_dir()/args.checkpoint
-    HIFIGAN_CHECKPOINT = get_user_data_dir() / "hifigan_T2_v1"
-    OUTPUT_FOLDER = "synth_output"
+    CKPT_DIR = "/workspace/local/checkpoints"
+    MATCHA_CHECKPOINT = CKPT_DIR + f"/matcha-tts/{args.checkpoint}"
+    HIFIGAN_CHECKPOINT = CKPT_DIR + "/hifigan_univ_v1"
+
+    # args.checkpoint is a file path, get the file name without the extension
+    _, speaker_id, train_epochs = os.path.basename(args.checkpoint).split('.')[0].split('-')
+
+    print(f"Using Matcha checkpoint: {speaker_id} {train_epochs}")
+
+
+    OUTPUT_FOLDER = "/workspace/local/samples/27_aug_2025_matcha"
+    OUTPUT_FOLDER += f"/{speaker_id}/{train_epochs}"
+
+    print(f"Output folder: {OUTPUT_FOLDER}")
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+    # exit(0)
+
+
+    print(f"Using Matcha checkpoint: {MATCHA_CHECKPOINT}")
+    print(f"Using HiFi-GAN checkpoint: {HIFIGAN_CHECKPOINT}")
 
     global model, vocoder, denoiser
 
-    # Create output directory
-    if 'bas' in str(args.checkpoint).lower():
-        SPEAKER = 'bas'
-        OUTPUT_FOLDER += '/bas'
-        if not os.path.exists(OUTPUT_FOLDER):
-            os.makedirs(OUTPUT_FOLDER)
-    elif 'sgs' in str(args.checkpoint).lower():
-        SPEAKER = 'sgs'
-        OUTPUT_FOLDER += '/sgs'
-        if not os.path.exists(OUTPUT_FOLDER):
-            os.makedirs(OUTPUT_FOLDER)
-    else:
-        raise ValueError(f"Unknown model type in checkpoint path: {args.checkpoint}")
+    # # Create output directory
+    # if 'bas' in str(args.checkpoint).lower():
+    #     SPEAKER = 'bas'
+    #     OUTPUT_FOLDER += f"/{args.checkpoint}"
+    #     if not os.path.exists(OUTPUT_FOLDER):
+    #         os.makedirs(OUTPUT_FOLDER)
+    # elif 'sgs' in str(args.checkpoint).lower():
+    #     SPEAKER = 'sgs'
+    #     OUTPUT_FOLDER += f"/{args.checkpoint}"
+    #     if not os.path.exists(OUTPUT_FOLDER):
+    #         os.makedirs(OUTPUT_FOLDER)
+    # elif 'flo' in str(args.checkpoint).lower():
+    #     SPEAKER = 'flo'
+    #     OUTPUT_FOLDER += f"/{args.checkpoint}"
+    #     if not os.path.exists(OUTPUT_FOLDER):
+    #         os.makedirs(OUTPUT_FOLDER)
+    # else:
+    #     raise ValueError(f"Unknown model type in checkpoint path: {args.checkpoint}")
+    # print(f"Saving to {OUTPUT_FOLDER}")
 
     print('Initializing model...')
     model = load_model(MATCHA_CHECKPOINT)
     print(f"Model loaded! Parameter count: {count_params(model)}")
 
     print('Initializing HiFi-GAN...')
+    print(HIFIGAN_CHECKPOINT)
     vocoder = load_vocoder(HIFIGAN_CHECKPOINT)
     denoiser = Denoiser(vocoder, mode='zeros')
 
     print(f"Reading texts from {args.file}...")
     filelist = parse_filelist(args.file, split_char='|')
 
-    rtf_values = []
-
+    # rtf_values = []
     with torch.no_grad():
         for i, line in enumerate(tqdm(filelist, desc="Synthesizing")):
 
             filepath, text, speaker = line[0], line[1], line[2]
 
-            if not 'bas_rnd1_357.wav' in filepath:
-                continue
-
             output = synthesise(text, args=args)
             output['waveform'] = to_waveform(output['mel'], vocoder)
-
-            rtf_values.append(output["rtf"])
+            # rtf_values.append(output["rtf"])
 
             # Filepath is a full path, extract the base path
             base_name = os.path.basename(filepath)
             save_to_folder(base_name, output, OUTPUT_FOLDER)
 
-    print('Done. Check out `out` folder for samples.')
-    rtf_df = pd.DataFrame(rtf_values, columns=['RTF'])
-    csv_file = os.path.join(OUTPUT_FOLDER, 'rtf_values.csv')
-    rtf_df.to_csv(csv_file, index=False)
+    # print('Done. Check out `out` folder for samples.')
+    # rtf_df = pd.DataFrame(rtf_values, columns=['RTF'])
+    # csv_file = os.path.join(OUTPUT_FOLDER, 'rtf_values.csv')
+    # rtf_df.to_csv(csv_file, index=False)
 
-    stats = rtf_df.describe().loc[['mean', 'max', 'min', 'std']]
-    stats.index = ['Average RTF', 'Max RTF', 'Min RTF', 'Standard Deviation RTF']
-    stats_csv_file = os.path.join(OUTPUT_FOLDER, 'rtf_stats.csv')
-    stats.to_csv(stats_csv_file)
+    # stats = rtf_df.describe().loc[['mean', 'max', 'min', 'std']]
+    # stats.index = ['Average RTF', 'Max RTF', 'Min RTF', 'Standard Deviation RTF']
+    # stats_csv_file = os.path.join(OUTPUT_FOLDER, 'rtf_stats.csv')
+    # stats.to_csv(stats_csv_file)
 
-    print(f"RTF values saved to {csv_file}")
-    print(f"RTF statistics saved to {stats_csv_file}")
+    # print(f"RTF values saved to {csv_file}")
+    # print(f"RTF statistics saved to {stats_csv_file}")
 
-    print(f"RTF values saved to {csv_file}")
+    # print(f"RTF values saved to {csv_file}")
 
 if __name__ == '__main__':
     args = parse_args()

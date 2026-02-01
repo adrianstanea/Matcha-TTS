@@ -4,11 +4,11 @@ defaults:
 
 _target_: matcha.data.text_mel_datamodule.TextMelDataModule
 name: swara
-train_filelist_path: resources/filelists/SWARA_1_0/metadata_SWARA1.0_train.csv
+train_filelist_path: resources/filelists/SWARA_1_0/finetune_meta_sgs_994_samples.csv
 valid_filelist_path: resources/filelists/SWARA_1_0/metadata_SWARA1.0_val.csv
 batch_size: 16
-num_workers: 8
-pin_memory: True
+num_workers: 5
+pin_memory: False
 cleaners: [romanian_cleaners]
 add_blank: True
 n_spks: 1
@@ -22,5 +22,4 @@ f_max: 8000
 data_statistics:  # Computed for SWARA1 dataset
   mel_mean: -4.776196479797363
   mel_std: 2.2280216217041016
-seed: ${seed}
 load_durations: false

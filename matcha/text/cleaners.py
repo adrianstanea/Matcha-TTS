@@ -115,9 +115,7 @@ def english_cleaners2(text):
 
 def romanian_cleaners(text):
     """Pipeline for Romanian text, including abbreviation expansion. + punctuation + stress"""
-    text = convert_to_ascii(text)
     text = lowercase(text)
-    text = expand_abbreviations(text)
     phonemes = global_phonemizer.phonemize([text], strip=True, njobs=1)[0]
     phonemes = remove_brackets(phonemes)
     phonemes = collapse_whitespace(phonemes)

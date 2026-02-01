@@ -1,0 +1,18 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=multispeakeswara_bas_10r
+
+defaults:
+  - override /data: swara.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["swara_sgs_10"]
+
+run_name: swara_sgs_10
+
+data:
+  train_filelist_path: resources/filelists/SWARA_1_0/finetune_meta_sgs_10.csv
+  batch_size: 5
